@@ -59,6 +59,8 @@ graph TB
 
     USER((用户))
 
+    USER -- "stage 外部来源暂存" --> EXT["外部存储工具\nNotion / Drive / Feishu / etc."]
+    EXT -- "按内容类型创建\n不可变 Raw Markdown" --> L1
     USER -- "ingest 摄取" --> L1
     USER -- "query 查询" --> L2
     USER -- "lint 健康检查" --> L2
@@ -81,7 +83,32 @@ graph TB
 
 ---
 
-## 图2：ingest 摄取操作
+## 图2：Raw 来源处理流程
+
+### 图2a：stage 外部来源暂存
+
+```mermaid
+flowchart TD
+    A([用户]) -- "指定外部来源\n和目标 raw 分类" --> B["AI 读取外部存储工具\nNotion / Drive / Feishu / etc."]
+    B --> C{"按内容类型选择\n现有 raw 子目录"}
+    C --> D["创建新的本地 Raw Markdown\nraw/[content-type]/[file].md"]
+    D --> E["写入 Stage Record\nSource Record\nIncluded / Excluded\nContent"]
+    E --> F["生成后即视为\n不可变 Raw 原始材料"]
+    F --> G([stage 完成\n不更新 wiki])
+
+    style A fill:#FFEBEE,stroke:#C62828,color:#000
+    style G fill:#E8F5E9,stroke:#2E7D32,color:#000
+    style B fill:#E3F2FD,stroke:#1565C0,color:#000
+    style D fill:#FFF3E0,stroke:#FF8C00,color:#000
+```
+
+**关键约束**:
+- Raw 分类按**内容类型**，不按来源工具(Notion 手稿 → `raw/manuscripts/`，不是 `raw/notion/`)
+- `stage` 只创建新的 Raw 文件，不更新 wiki
+- Connector 选择顺序:**MCP connector → CLI → 浏览器自动化 → 人工导出 → 用户提供副本**(详见 CLAUDE.md `stage` 操作说明)
+- 创建前必须 dedup 检查;同源已存在则询问用户(replace / new versioned snapshot / skip)
+- 文件命名:`[YYYY-MM-DD]-[slug](-v[N]).md`;首次快照不带 `-v`，第二次起加 `-v2` `-v3` ...
+- 文件创建后视为**不可变**;后续 AI 操作只读不写;后续使用记录写入 `wiki/log.md`、`wiki/sources/` 或项目 source appendix
 
 ```mermaid
 flowchart TD
@@ -89,7 +116,13 @@ flowchart TD
 
     B[/"raw/ 原始文档"/]
     B --> C["AI 读取文档内容"]
-    C --> D["与用户讨论\n核心要点 & 重要发现"]
+    C --> C1{"是否为 staged Raw\n且内容是链接索引？"}
+    C1 -- "是" --> C2["识别全部外部链接\n请求用户确认 ingest 范围"]
+    C2 --> C3{"用户选择"}
+    C3 -- "只摄取索引" --> D
+    C3 -- "展开链接正文" --> C4["读取已确认范围内\n外部链接内容"]
+    C4 --> D
+    C1 -- "否" --> D["与用户讨论\n核心要点 & 重要发现"]
     D --> E["创建 wiki/sources/ 摘要页\n一文一页\n（frontmatter: type=fact）"]
 
     E --> F{"文档包含哪些内容？"}
@@ -111,7 +144,7 @@ flowchart TD
     style F fill:#FFF9C4,stroke:#F9A825,color:#000
 ```
 
-**v1.5 关键约束**：每个新页必须带 5 字段 frontmatter（id / domain / type / source_lineage / last_updated）。无外部 source 不得标 `fact`。manuscripts 默认标 `opinion`。
+**v1.6 关键约束**:每个新页必须带 5 字段 frontmatter（id / domain / type / source_lineage / last_updated）。无可追溯来源证据不得标 `fact`。manuscripts 默认标 `opinion`。LLM 生成的 raw 文件不构成 fact 证据，除非由非 LLM 一手或权威来源独立验证（详见 CLAUDE.md `Fact Promotion Rules` 段）。
 
 ---
 

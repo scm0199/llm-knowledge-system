@@ -19,14 +19,14 @@ The entire knowledge base lives as plain Markdown files with YAML frontmatter. N
 
 1. **Objective / subjective separation** — Every page is tagged with `type: fact | interpretation | hypothesis | opinion`. Reliability is visible at a glance.
 2. **Markdown + frontmatter as the universal currency** — Every page carries a 5-field YAML header. The filesystem + wikilinks is the source of truth.
-3. **Lineage over assertion** — Every claim must trace back to a `sources/` page. Unsourced content cannot be promoted to `fact`.
+3. **Lineage over assertion** — Every claim must trace back to explicit upstream evidence (`wiki/sources/`, raw file paths, project deliverables, or source appendices as appropriate). Unsourced content cannot be promoted to `fact`.
 4. **Default-save, batch-confirm** — Query answers are auto-saved as candidates. Confirmation happens in batch during `lint`, not mid-conversation.
 
 ### Four-layer architecture
 
 | Layer | Path | Who writes | Purpose |
 |---|---|---|---|
-| 1. Raw | `raw/` | You | Drop in articles, meeting notes, reports, manuscripts. AI only reads. |
+| 1. Raw | `raw/` | You; AI only via user-authorized `stage` | Drop in articles, meeting notes, reports, manuscripts. AI reads only during analysis; external cloud documents can first be staged into immutable local Markdown files under the matching Raw content category. |
 | 2. Wiki | `wiki/` | AI | Structured pages: concepts, entities, products, sources, analyses. |
 | 3. Methods | `methods/` | Pre-built | Research methods: `lens-research` (6-perspective depth), `deep-search` (multi-agent breadth). |
 | 4. Projects | `projects/` | AI | Per-task workspace. Each research project gets its own folder. |
@@ -39,6 +39,7 @@ The entire knowledge base lives as plain Markdown files with YAML frontmatter. N
 
 | Command | What happens |
 |---|---|
+| `stage <external source>` | Capture external cloud/file-store material into a new immutable local Raw Markdown file |
 | `ingest <path>` | Process a raw document into the wiki |
 | `query <question>` | Answer using existing wiki knowledge |
 | `lint` | Health check + batch-review pending candidates |
@@ -49,7 +50,9 @@ Full command list in [`commands.md`](commands.md). Full protocol in [`CLAUDE.md`
 
 ### Repo state
 
-This repo is the **starter template** — empty wiki, empty raw, empty projects. Clone it, drop in your own raw documents, and start an `ingest`.
+This repository can be used as a **starter template**, but a local working copy may already contain real knowledge pages, raw sources, and research projects.
+
+For any active instance, treat `CLAUDE.md` as the operating protocol, and treat `wiki/overview.md`, `wiki/index.md`, and `wiki/log.md` as the current state of the knowledge base.
 
 ### License
 
@@ -69,14 +72,14 @@ MIT — see [LICENSE](LICENSE).
 
 1. **客观/主观分离** —— 每个页面都标 `type: fact | interpretation | hypothesis | opinion`，可信度一眼可见。
 2. **Markdown + frontmatter 是通用货币** —— 每页必须带 5 字段 YAML 头。文件系统 + wikilink 就是真相来源。
-3. **来源可追溯优先于主张** —— 每条断言都要 link 回 `sources/` 里的某一页。无来源的内容不能升级为 `fact`。
+3. **来源可追溯优先于主张** —— 每条断言都要追溯到明确的上游证据（按场景可为 `wiki/sources/`、raw 文件路径、项目交付物或 source appendix）。无来源的内容不能升级为 `fact`。
 4. **默认保存，批量确认** —— 问答结果自动落候选区，下一次 `lint` 时批量审核，不打断你思考流。
 
 ### 四层架构
 
 | 层 | 路径 | 谁写 | 作用 |
 |---|---|---|---|
-| 1. 原料 | `raw/` | 你 | 文章、会议记录、报告、手稿往里扔。AI 只读不改。 |
+| 1. 原料 | `raw/` | 你；AI 仅可通过用户授权的 `stage` 创建新文件 | 文章、会议记录、报告、手稿往里扔。AI 在分析时只读不改；外部云端资料可先按内容类型暂存为对应 Raw 分类下的不可变本地 Markdown 文件。 |
 | 2. 知识库 | `wiki/` | AI | 结构化页面：概念、实体、产品、来源、分析。 |
 | 3. 方法库 | `methods/` | 内置 | 研究方法：`lens-research`（六视角深度）、`deep-search`（多智能体广度）。 |
 | 4. 项目 | `projects/` | AI | 单任务工作区，每次研究一个独立文件夹。 |
@@ -89,6 +92,7 @@ MIT — see [LICENSE](LICENSE).
 
 | 命令 | 作用 |
 |---|---|
+| `stage <外部来源>` | 将外部云端/文件存储材料封存为新的、不可变的本地 Raw Markdown |
 | `ingest <路径>` | 摄取一份原始文档进知识库 |
 | `query <问题>` | 用已有知识回答问题 |
 | `lint` | 健康检查 + 批量审核候选答案 |
@@ -99,7 +103,9 @@ MIT — see [LICENSE](LICENSE).
 
 ### 仓库状态
 
-当前仓库是**初始模板**——空 wiki、空 raw、空 projects。你 clone 下来后，把自己的原始文档丢进 `raw/`，然后开始 `ingest`。
+本仓库可以作为**初始模板**使用，但某个本地工作副本也可能已经包含真实的知识页面、原始材料和研究项目。
+
+对任何正在使用的实例，请以 `CLAUDE.md` 作为操作协议入口，并以 `wiki/overview.md`、`wiki/index.md`、`wiki/log.md` 判断当前知识库状态。
 
 ### 许可证
 
