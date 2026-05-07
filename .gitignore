@@ -6,3 +6,7 @@
 *.swp
 *.swo
 Thumbs.db
+
+# v2.0: keep save/ template only; user-saved notes are private
+save/*.md
+!save/index.md

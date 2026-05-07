@@ -2,6 +2,8 @@
 
 > A single-user, file-system-based personal knowledge base maintained collaboratively with an LLM agent (e.g. Claude Code).
 > 一套由 LLM 代理（如 Claude Code）协作维护的、纯文件系统的单用户个人知识库。
+>
+> **Protocol version: v2.0 (2026-05-07).** Full changelog at the top of [`CLAUDE.md`](CLAUDE.md). Highlights: 5-layer architecture (raw / save / wiki / methods / projects); 8 operations grouped into Input / Processing / Maintenance phases; optional MarkItDown stage conversion; `notebooklm-analysis` is opt-in only.
 
 [English](#english) · [中文](#中文)
 
@@ -22,14 +24,15 @@ The entire knowledge base lives as plain Markdown files with YAML frontmatter. N
 3. **Lineage over assertion** — Every claim must trace back to explicit upstream evidence (`wiki/sources/`, raw file paths, project deliverables, or source appendices as appropriate). Unsourced content cannot be promoted to `fact`.
 4. **Default-save, batch-confirm** — Query answers are auto-saved as candidates. Confirmation happens in batch during `lint`, not mid-conversation.
 
-### Four-layer architecture
+### Five-layer architecture
 
 | Layer | Path | Who writes | Purpose |
 |---|---|---|---|
-| 1. Raw | `raw/` | You; AI only via user-authorized `stage` | Drop in articles, meeting notes, reports, manuscripts. AI reads only during analysis; external cloud documents can first be staged into immutable local Markdown files under the matching Raw content category. |
-| 2. Wiki | `wiki/` | AI | Structured pages: concepts, entities, products, sources, analyses. |
-| 3. Methods | `methods/` | Pre-built | Research methods: `lens-research` (6-perspective depth), `deep-search` (multi-agent breadth). |
-| 4. Projects | `projects/` | AI | Per-task workspace. Each research project gets its own folder. |
+| 1. Raw | `raw/` | You; AI only via user-authorized `stage` | Drop in articles, meeting notes, reports, manuscripts. AI reads only during analysis; external cloud documents and external local files such as PDFs/Office documents can first be staged into immutable local Markdown snapshots under the matching Raw content category. |
+| 2. Save | `save/` | AI, only when user explicitly asks to save | User-directed saved conversation assets: decisions, workflows, interim conclusions, reusable prompts. External sync copies may be created, but `save/` remains canonical. |
+| 3. Wiki | `wiki/` | AI | Structured pages: concepts, entities, products, sources, analyses. |
+| 4. Methods | `methods/` | Pre-built | Research methods: `lens-research` (6-perspective depth), `deep-search` (multi-agent breadth), `notebooklm-analysis` (NotebookLM-assisted synthesis). |
+| 5. Projects | `projects/` | AI | Per-task workspace. Each research project gets its own folder. |
 
 ### How to use it
 
@@ -39,9 +42,11 @@ The entire knowledge base lives as plain Markdown files with YAML frontmatter. N
 
 | Command | What happens |
 |---|---|
-| `stage <external source>` | Capture external cloud/file-store material into a new immutable local Raw Markdown file |
+| `stage <external source>` | Capture external cloud/file-store/local-file material into a new immutable local Raw Markdown file; MarkItDown is used for convertible files when available, with fallback when unavailable |
 | `ingest <path>` | Process a raw document into the wiki |
 | `query <question>` | Answer using existing wiki knowledge |
+| `save <topic>` | Save user-selected conversation material into `save/` |
+| `save-sync <destination> <topic/path>` | Save locally first, then sync a one-way copy to an external destination |
 | `lint` | Health check + batch-review pending candidates |
 | `research <topic>` | Launch a structured research project |
 | `absorb <topic>` | Fold research findings back into the wiki |
@@ -75,14 +80,15 @@ MIT — see [LICENSE](LICENSE).
 3. **来源可追溯优先于主张** —— 每条断言都要追溯到明确的上游证据（按场景可为 `wiki/sources/`、raw 文件路径、项目交付物或 source appendix）。无来源的内容不能升级为 `fact`。
 4. **默认保存，批量确认** —— 问答结果自动落候选区，下一次 `lint` 时批量审核，不打断你思考流。
 
-### 四层架构
+### 五层架构
 
 | 层 | 路径 | 谁写 | 作用 |
 |---|---|---|---|
-| 1. 原料 | `raw/` | 你；AI 仅可通过用户授权的 `stage` 创建新文件 | 文章、会议记录、报告、手稿往里扔。AI 在分析时只读不改；外部云端资料可先按内容类型暂存为对应 Raw 分类下的不可变本地 Markdown 文件。 |
-| 2. 知识库 | `wiki/` | AI | 结构化页面：概念、实体、产品、来源、分析。 |
-| 3. 方法库 | `methods/` | 内置 | 研究方法：`lens-research`（六视角深度）、`deep-search`（多智能体广度）。 |
-| 4. 项目 | `projects/` | AI | 单任务工作区，每次研究一个独立文件夹。 |
+| 1. 原料 | `raw/` | 你；AI 仅可通过用户授权的 `stage` 创建新文件 | 文章、会议记录、报告、手稿往里扔。AI 在分析时只读不改；外部云端资料和本地外部 PDF/Office 等文件可先按内容类型暂存为对应 Raw 分类下的不可变本地 Markdown 快照。 |
+| 2. 保存 | `save/` | AI，仅在用户明确要求保存时写入 | 用户主动保存的对话资产：决策、工作流、阶段性结论、可复用 prompt。可创建外部同步副本，但 `save/` 仍是主记录。 |
+| 3. 知识库 | `wiki/` | AI | 结构化页面：概念、实体、产品、来源、分析。 |
+| 4. 方法库 | `methods/` | 内置 | 研究方法：`lens-research`（六视角深度）、`deep-search`（多智能体广度）、`notebooklm-analysis`（NotebookLM 辅助综合）。 |
+| 5. 项目 | `projects/` | AI | 单任务工作区，每次研究一个独立文件夹。 |
 
 ### 使用方法
 
@@ -92,9 +98,11 @@ MIT — see [LICENSE](LICENSE).
 
 | 命令 | 作用 |
 |---|---|
-| `stage <外部来源>` | 将外部云端/文件存储材料封存为新的、不可变的本地 Raw Markdown |
+| `stage <外部来源>` | 将外部云端/文件存储/本地外部文件封存为新的、不可变的本地 Raw Markdown；可转写文件优先使用 MarkItDown，不可用时 fallback |
 | `ingest <路径>` | 摄取一份原始文档进知识库 |
 | `query <问题>` | 用已有知识回答问题 |
+| `save <主题>` | 将用户明确要求保存的对话内容写入 `save/` |
+| `save-sync <地点> <主题/路径>` | 先保存到本地，再单向同步副本到外部位置 |
 | `lint` | 健康检查 + 批量审核候选答案 |
 | `research <主题>` | 启动一次结构化深度研究 |
 | `absorb <主题>` | 把研究结论吸收回知识库 |
